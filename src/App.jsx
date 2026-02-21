@@ -55,7 +55,7 @@ function App() {
     chrome.alarms.create("deepWorkTimer", { delayInMinutes: duration });
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (secs) => {
     if (secs < 60) return `${secs}s`;
     const m = Math.floor(secs / 60);
     const h = Math.floor(m / 60);
