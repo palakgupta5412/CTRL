@@ -49,14 +49,13 @@ const ROASTS = [
 
 const Roast = () => {
 
-  const [currentRoast, setCurrentRoast] = useState(ROASTS[0]);
+  const [currentRoast] = useState(() => ROASTS[Math.floor(Math.random() * ROASTS.length)]);
 
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * ROASTS.length);
-    setCurrentRoast(ROASTS[randomIndex]);
-
+    // Only use the effect to log the analytics data in the background
     chrome.runtime.sendMessage({ action: "logRoast" });
-  })
+  }, []);
+  
   return (
     <div className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-zinc-950/95 backdrop-blur-md font-sans text-white">
       <motion.div 

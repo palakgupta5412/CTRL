@@ -9,12 +9,16 @@
       "16": "greenClock.png"
     }
   },
-  "permissions": [
+"permissions": [
     "storage",
     "alarms",
     "notifications",
     "tabs",
-    "idle"
+    "idle",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "src/background.js",

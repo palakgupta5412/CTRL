@@ -63,6 +63,22 @@ function App() {
     return `${h}h ${m % 60}m`;
   };
 
+  const toggleStudyMode = () => {
+    if (isLocked) return; // Prevent changing if timer is running
+    const newMode = !studyMode;
+    setStudyMode(newMode);
+    setGameMode(false); // Force Game Mode off
+    chrome.storage.local.set({ studyMode: newMode, gameMode: false });
+  };
+
+  const toggleGameMode = () => {
+    if (isLocked) return; // Prevent changing if timer is running
+    const newMode = !gameMode;
+    setGameMode(newMode);
+    setStudyMode(false); // Force Study Mode off
+    chrome.storage.local.set({ gameMode: newMode, studyMode: false });
+  };
+
   const isLocked = !!endTime;
 
   // Analytics Helpers
@@ -129,11 +145,11 @@ function App() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <button onClick={() => !isLocked && chrome.storage.local.set({ studyMode: !studyMode, gameMode: false })} disabled={isLocked}
+            <button onClick={toggleStudyMode} disabled={isLocked}
               className={`py-3 rounded shadow-md text-sm font-semibold transition-all ${studyMode ? 'bg-red-600/90 hover:bg-red-500 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400'} ${isLocked ? 'opacity-40 cursor-not-allowed' : ''}`}>
               {studyMode && !isLocked ? 'Study Mode: ON' : 'Study Mode'}
             </button>
-            <button onClick={() => !isLocked && chrome.storage.local.set({ gameMode: !gameMode, studyMode: false })} disabled={isLocked}
+            <button onClick={toggleGameMode} disabled={isLocked}
               className={`py-3 rounded shadow-md text-sm font-semibold transition-all ${gameMode ? 'bg-blue-600/90 hover:bg-blue-500 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400'} ${isLocked ? 'opacity-40 cursor-not-allowed' : ''}`}>
               {gameMode ? 'Game Mode: ON' : 'Game Mode'}
             </button>

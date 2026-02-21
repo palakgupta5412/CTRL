@@ -48,6 +48,96 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY; 
+// console.log("GROQ API Key:", GROQ_API_KEY);
+// --- THE GLOBAL AI CONTENT SCANNER ---
+
+async function analyzePageContent(pageText) {
+  const prompt = `
+    You are an aggressive productivity enforcer for a computer science student prepping for tech placements. 
+    Analyze the following extracted webpage text. 
+    
+    Rule 1: If the text is about programming (Java, C++), Data Structures & Algorithms (DSA), competitive programming, web development (MERN stack), UI/UX design, or legitimate college research, or anything related to studies , online study help tools , online couses platform , anything that helps in studies , even the chatGPT and such AI tools or search engines, you must reply strictly with the word "ALLOW".
+    Rule 2: If the text is about entertainment, gaming, celebrity gossip, mindless social media, or anything unrelated to tech placements, you must reply strictly with the word "BLOCK".
+    
+    Do not explain your reasoning. Reply ONLY with "ALLOW" or "BLOCK".
+    
+    Webpage Text: "${pageText.substring(0, 800)}"
+  `;
+
+  try {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant", 
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.1
+      })
+    });
+    
+    const data = await response.json();
+    
+    // NEW: Check if Groq threw an error (like an invalid API key)
+    // NEW: Stringify the error so it prints the exact reason in plain text!
+    if (!data.choices || !data.choices[0]) {
+      console.error("🚨 Groq API Error Message:", data.error?.message || JSON.stringify(data));
+      return "ALLOW"; 
+    }
+
+    return data.choices[0].message.content.trim().toUpperCase();
+  } catch (error) {
+    console.error("AI Scanner Error:", error);
+    return "ALLOW"; 
+  }
+}
+
+// Listen for when a webpage finishes loading
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  
+  if (!tab.url || tab.url.startsWith("chrome://") || tab.url.startsWith("edge://")) {
+    return; 
+  }
+
+  // Only scan if Study Mode is active and the page is fully loaded
+  const data = await chrome.storage.local.get(["studyMode", "endTime"]);
+  const isLocked = !!data.endTime && data.endTime > Date.now();
+  const isActive = isLocked || data.studyMode;
+
+  if (changeInfo.status === 'complete' && tab.active && isActive) {
+    
+    // Inject a script to scrape the first chunks of readable text from the DOM
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      func: () => {
+        // Grab headers and paragraphs
+        const elements = document.querySelectorAll('h1, h2, p');
+        let text = "";
+        elements.forEach(el => text += el.innerText + " ");
+        return text.trim();
+      }
+    }, async (injectionResults) => {
+      if (!injectionResults || !injectionResults[0].result) return;
+      
+      const pageText = injectionResults[0].result;
+      if (pageText.length < 50) return; // Ignore blank pages
+      
+      console.log("🕵️ Scanning page context...");
+      const verdict = await analyzePageContent(pageText);
+      console.log("🤖 AI Verdict:", verdict);
+      
+      if (verdict.includes("BLOCK")) {
+        // The AI caught you slacking. Inject the Roast Overlay!
+        chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          files: ["assets/roast_injector.js"] // We will create this next!
+        });
+      }
+    });
+  }
+});
 
 async function evaluateWithAI(title) {
 
