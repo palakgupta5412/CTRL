@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "CTRL",
+  "version": "1.0.0",
+  "description": "Smart notifications for gaming, savage roasts for studying.",
+  "action": {
+    "default_popup": "index.html" ,
+    "default_icon": {
+      "16": "greenClock.png"
+    }
+  },
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications",
+    "tabs",
+    "idle"
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["src/content.jsx"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/gameMode.jsx"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/hijack.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ] , 
+  "icons": {
+    "16": "greenClock.png"
+  }
+}
