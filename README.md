@@ -1,6 +1,6 @@
 # 🛑 CTRL: Context-Aware AI Productivity Engine
 
-![CTRL Demo](./demo.gif)
+![CTRL Demo](/public/demo.gif)
 
 CTRL is a custom Manifest V3 Chrome Extension engineered for students. Instead of relying on hardcoded URL blacklists, CTRL dynamically scrapes DOM content and utilizes a live LLM (Groq LLaMA-3.1) to classify webpage context in milliseconds. 
 
